@@ -383,6 +383,13 @@ public class ScreenMainGame extends BaseScreen {
 			mPlayer.setPosOnScreen(tmpP.x, tmpP.y, mMapScreenPos);
 		}
 		
+		// 清除旧地图 NPC，由地图入口脚本通过 cmd_createnpc 重建。
+		// 配合 v2.11 的 cmd_createnpc 事件标志检查，
+		// 已击杀/已完成事件的 NPC 不会再出现。
+		for (int i = 1; i <= 40; i++) {
+			mNPCObj[i] = null;
+		}
+		
 		SaveLoadGame.MapType = type;
 		SaveLoadGame.MapIndex = index;
 		SaveLoadGame.MapScreenX = x;
