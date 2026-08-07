@@ -329,9 +329,11 @@ public class ScreenMainGame extends BaseScreen {
 		int headerCnt = events.length * 2 + 3;
 		int offset = addr - headerCnt;
 		byte[] data = script.getScriptData();
-		if (offset < 0 || offset + 2 >= data.length) return false;
+		if (offset < 0 || offset + 3 >= data.length) return false;
 		if (data[offset] == 11) { // cmd_if
-			int flagNum = ((data[offset + 2] & 0xFF) << 8) | (data[offset + 1] & 0xFF);
+			// cmd_if 指令格式: [opcode=11] [flag_H] [flag_L] [jump_H] [jump_L]
+			// get2ByteInt 统一用 big-endian: (byte[n]<<8) | byte[n+1]
+			int flagNum = ((data[offset + 1] & 0xFF) << 8) | (data[offset + 2] & 0xFF);
 			if (flagNum > 0 && flagNum < ScriptResources.globalEvents.length
 					&& ScriptResources.globalEvents[flagNum]) {
 				return true; // 事件已完成
@@ -348,11 +350,6 @@ public class ScreenMainGame extends BaseScreen {
 	 */
 	public boolean canPlayerWalk(int x, int y) {
 		if (mMap == null) return false;
-		// 如果该位置有 NPC 但其事件已完成，允许穿行
-		int npcId = getNpcIdFromPosInMap(x, y);
-		if (npcId != 0 && isNpcEventCompleted(npcId)) {
-			return mMap.canPlayerWalk(x, y);
-		}
 		return mMap.canPlayerWalk(x, y) && getNpcFromPosInMap(x, y) == null;
 	}
 	

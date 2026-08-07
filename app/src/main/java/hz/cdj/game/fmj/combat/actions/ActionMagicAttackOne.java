@@ -6,6 +6,7 @@ import hz.cdj.game.fmj.combat.anim.RaiseAnimation;
 import hz.cdj.game.fmj.lib.ResSrs;
 import hz.cdj.game.fmj.magic.BaseMagic;
 import hz.cdj.game.fmj.magic.MagicAttack;
+import hz.cdj.game.fmj.magic.MagicSpecial;
 import android.graphics.Canvas;
 
 public class ActionMagicAttackOne extends ActionSingleTarget {
@@ -38,8 +39,8 @@ public class ActionMagicAttackOne extends ActionSingleTarget {
 		mAni.startAni();
 		mAni.setIteratorNum(2);
 		int ohp = mTarget.getHP();
-		if (magic instanceof MagicAttack) {
-			((MagicAttack)magic).use(mAttacker, mTarget);
+		if (magic instanceof MagicAttack || magic instanceof MagicSpecial) {
+			((BaseMagic)magic).use(mAttacker, mTarget);
 		}
 		mAniX = mTarget.getCombatX();
 		mAniY = mTarget.getCombatY() - mTarget.getFightingSprite().getHeight() / 2;

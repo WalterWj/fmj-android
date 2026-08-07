@@ -61,6 +61,7 @@ public abstract class FightingCharacter extends Character {
 	}
 	
 	public void setMagicLearnNum(int num) {
+		System.out.println("[FightingCharacter.setMagicLearnNum] class=" + getClass().getSimpleName() + " old=" + mMagicLearnNum + " new=" + num);
 		mMagicLearnNum = num;
 	}
 	

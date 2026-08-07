@@ -1335,28 +1335,65 @@ public class ScriptProcess {
 						// 根据 actorId 找到对应的角色
 						int actorId = get2ByteInt(code, start);
 						Player p = mScreenMainGame.getPlayer(actorId);
+						System.out.println("[cmd_learnmagic] actorId=" + actorId + " player=" + (p != null ? p.getName() : "null"));
 						if (p != null) {
 							// 在魔法链中查找被传授的魔法位置
 							int magicType = get2ByteInt(code, start + 2);
 							int magicIndex = get2ByteInt(code, start + 4);
 							BaseMagic targetMagic = (BaseMagic)DatLib.GetRes(DatLib.RES_MRS, magicType, magicIndex);
+							System.out.println("[cmd_learnmagic] magic type=" + magicType + " index=" + magicIndex + " target=" + (targetMagic != null ? targetMagic.getMagicName() : "null"));
 							if (targetMagic != null) {
 								mMagicName = targetMagic.getMagicName();
 							}
 							ResMagicChain chain = p.getMagicChain();
+							System.out.println("[cmd_learnmagic] chain=" + (chain != null ? chain.getMagicSum() + " magics" : "null") + " curLearnNum=" + p.getMagicLearnNum());
 							if (chain != null && targetMagic != null) {
 								// 在魔法链中查找该魔法的位置，确定应该设置 learnNum 为多少
-								for (int i = 0; i < chain.getMagicSum(); i++) {
-									BaseMagic m = chain.getMagic(i);
-									if (m != null && m.getType() == magicType && m.getIndex() == magicIndex) {
-										int newLearnNum = i + 1;
-										if (newLearnNum > p.getMagicLearnNum()) {
-											p.setMagicLearnNum(newLearnNum);
-											// 同步更新共享链（旧存档兼容）
-											chain.setLearnNum(newLearnNum);
+								// 尝试多种匹配策略：1) 引用匹配  2) type/index匹配  3) 名称匹配
+								boolean found = false;
+								for (int pass = 0; pass < 3 && !found; pass++) {
+									for (int i = 0; i < chain.getMagicSum(); i++) {
+										BaseMagic m = chain.getMagic(i);
+										if (m == null) continue;
+										boolean match = false;
+										String matchType = "";
+										if (pass == 0 && m == targetMagic) {
+											match = true;
+											matchType = "ref";
+										} else if (pass == 1 && m.getType() == magicType && m.getIndex() == magicIndex) {
+											match = true;
+											matchType = "type";
+										} else if (pass == 2 && mMagicName != null && mMagicName.equals(m.getMagicName())) {
+											match = true;
+											matchType = "name";
 										}
-										break;
+										if (match) {
+											int newLearnNum = i + 1;
+											System.out.println("[cmd_learnmagic] FOUND by " + matchType + " at i=" + i + " newLearnNum=" + newLearnNum + " old=" + p.getMagicLearnNum());
+											if (newLearnNum > p.getMagicLearnNum()) {
+												p.setMagicLearnNum(newLearnNum);
+												// 同步更新共享链（旧存档兼容）
+												chain.setLearnNum(newLearnNum);
+												System.out.println("[cmd_learnmagic] SET learnNum=" + newLearnNum);
+											}
+											found = true;
+											break;
+										}
 									}
+								}
+								if (!found) {
+									System.out.println("[cmd_learnmagic] NOT FOUND in chain! chainSize=" + chain.getMagicSum() + " curLearnNum=" + p.getMagicLearnNum());
+									for (int i = 0; i < chain.getMagicSum(); i++) {
+										BaseMagic m = chain.getMagic(i);
+										if (m != null) {
+											System.out.println("[cmd_learnmagic]   chain[" + i + "] type=" + m.getType() + " idx=" + m.getIndex() + " name=" + m.getMagicName());
+										}
+									}
+									// 回退到原版逻辑：直接 learnNum++ 揭示下一个魔法
+									// 原版 cmd_learnmagic 调用 learnNextMagic()，无界检查
+									chain.learnNextMagic();
+									p.setMagicLearnNum(chain.getLearnNum());
+									System.out.println("[cmd_learnmagic] FALLBACK: learnNextMagic() → learnNum=" + p.getMagicLearnNum());
 								}
 							}
 						}
@@ -1381,7 +1418,8 @@ public class ScriptProcess {
 					String msg = mMagicName != null 
 						? "学会魔法:" + mMagicName 
 						: "学会魔法!";
-					Util.showMessage(canvas, msg.getBytes());
+					// 使用 String 版本，内部转 GBK，避免 getBytes() 用 UTF-8 导致乱码
+					Util.showMessage(canvas, msg);
 				}
 			};
 		}

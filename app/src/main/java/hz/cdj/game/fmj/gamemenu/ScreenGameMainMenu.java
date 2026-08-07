@@ -103,6 +103,7 @@ public class ScreenGameMainMenu extends BaseScreen {
 	 */
 	private ScreenMagic getScreenMagic(final int id) {
 		Player p = ScreenMainGame.instance.getPlayerList().get(id);
+		System.out.println("[ScreenGameMainMenu] player[" + id + "] name=" + p.getName() + " learnNum=" + p.getMagicLearnNum() + " chainSize=" + (p.getMagicChain() != null ? p.getMagicChain().getMagicSum() : 0));
 		if (p.getMagicChain() == null || p.getMagicLearnNum() == 0) {
 			Util.showMessage("未学会任何魔法!", 1000);
 			return null;

@@ -53,6 +53,7 @@ public class ScreenMagic extends BaseScreen {
 		}
 		mMagicChain = magicChain;
 		mLearnNum = learnNum;
+		System.out.println("[ScreenMagic] created: learnNum=" + learnNum + " chainSize=" + magicChain.getMagicSum());
 		mOnItemSelectedListener = l;
 		mFramePaint.setColor(Global.COLOR_BLACK);
 		mFramePaint.setStyle(Style.STROKE);
