@@ -78,12 +78,6 @@ public class ScreenMainGame extends BaseScreen {
 			}
 			mScriptSys.loadScript(SaveLoadGame.ScriptType, SaveLoadGame.ScriptIndex);
 			mScriptExecutor = mScriptSys.getScriptExecutor();
-			// 清理存档中已击杀/已完成事件的幽灵 NPC
-			for (int i = 1; i < mNPCObj.length; i++) {
-				if (mNPCObj[i] != null && isNpcEventCompleted(i)) {
-					mNPCObj[i] = null;
-				}
-			}
 			ScriptExecutor.goonExecute = true;
 			mRunScript = false;
 		}
