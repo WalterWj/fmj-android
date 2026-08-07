@@ -470,8 +470,8 @@ public class Combat extends BaseScreen implements CombatUI.CallBack {
 					int actualExp = Global.sCheatExpGold ? mWinExp * 100 : mWinExp;
 					for (Player p : mPlayerList) { // 获得经验
 						if (p.isAlive()) {
-							if (p.getLevel() >= p.getLevelupChain().getMaxLevel()) // 满级
-								break;
+						if (p.getLevel() >= p.getLevelupChain().getMaxLevel()) // 满级
+							continue;
 							int nextExp = p.getLevelupChain().getNextLevelExp(p.getLevel());
 							int exp = actualExp + p.getCurrentExp();
 							if (exp < nextExp) {
