@@ -1,0 +1,30 @@
+# Gradle / Build artifacts
+.gradle/
+build/
+app/build/
+captures/
+
+# Compiled files
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Local configuration (contains SDK path)
+local.properties
+
+# IntelliJ / Android Studio / Native
+*.iml
+.idea/
+.cxx/
+.externalNativeBuild/
+
+# Keystore
+*.jks
+*.keystore
+
+# OS
+.DS_Store
+
+# Logs
+*.log
