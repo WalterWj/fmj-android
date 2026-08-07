@@ -14,7 +14,7 @@
 
 可直接下载已编译的 APK 体验：
 
-👉 **[Releases · v2.7](https://github.com/WalterWj/fmj-android/releases/tag/v2.7)**
+👉 **[Releases · v2.19](https://github.com/WalterWj/fmj-android/releases/tag/v2.19)**
 
 如需自行编译，参见下方 [构建与运行](#-构建与运行) 章节。
 
@@ -29,7 +29,7 @@
 - **角色养成**：玩家、NPC、怪物，含升级链与成长数值（`characters` 包）
 - **原版资源解析**：直接读取原版 `DAT.LIB` / `DAT2.LIB` 数据库（`lib` 包）
 - **菜单与界面**：游戏主菜单、物品、装备、状态、存读档等界面（`gamemenu` / `views` / `scene` 包）
-- **横屏全屏**：在内部 160×106 点阵画布上渲染并自适应放大，保持原版视觉风格
+- **横屏全屏**：在内部 256×170 画布上渲染（地图区域 256×160），自适应全屏
 
 ---
 
