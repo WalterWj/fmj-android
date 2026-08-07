@@ -15,6 +15,8 @@ import hz.cdj.game.fmj.lib.ResBase;
 import hz.cdj.game.fmj.lib.ResGut;
 import hz.cdj.game.fmj.lib.ResImage;
 import hz.cdj.game.fmj.lib.ResSrs;
+import hz.cdj.game.fmj.magic.BaseMagic;
+import hz.cdj.game.fmj.magic.ResMagicChain;
 import hz.cdj.game.fmj.scene.ScreenMainGame;
 
 import java.util.ArrayList;
@@ -1313,6 +1315,8 @@ public class ScriptProcess {
 				
 				boolean isAnyKeyDown;
 				long timeCnt;
+				boolean isProcessed;
+				String mMagicName;
 				
 				@Override
 				public boolean update(long delta) {
@@ -1322,6 +1326,37 @@ public class ScriptProcess {
 				
 				@Override
 				public boolean process() {
+					if (!isProcessed) {
+						isProcessed = true;
+						// 根据 actorId 找到对应的角色
+						int actorId = get2ByteInt(code, start);
+						Player p = mScreenMainGame.getPlayer(actorId);
+						if (p != null) {
+							// 在魔法链中查找被传授的魔法位置
+							int magicType = get2ByteInt(code, start + 2);
+							int magicIndex = get2ByteInt(code, start + 4);
+							BaseMagic targetMagic = (BaseMagic)DatLib.GetRes(DatLib.RES_MRS, magicType, magicIndex);
+							if (targetMagic != null) {
+								mMagicName = targetMagic.getMagicName();
+							}
+							ResMagicChain chain = p.getMagicChain();
+							if (chain != null && targetMagic != null) {
+								// 在魔法链中查找该魔法的位置，确定应该设置 learnNum 为多少
+								for (int i = 0; i < chain.getMagicSum(); i++) {
+									BaseMagic m = chain.getMagic(i);
+									if (m != null && m.getType() == magicType && m.getIndex() == magicIndex) {
+										int newLearnNum = i + 1;
+										if (newLearnNum > p.getMagicLearnNum()) {
+											p.setMagicLearnNum(newLearnNum);
+											// 同步更新共享链（旧存档兼容）
+											chain.setLearnNum(newLearnNum);
+										}
+										break;
+									}
+								}
+							}
+						}
+					}
 					isAnyKeyDown = false;
 					timeCnt = 0;
 					return true;
@@ -1333,14 +1368,16 @@ public class ScriptProcess {
 				
 				@Override
 				public void onKeyDown(int key) {
+					isAnyKeyDown = true;
 				}
 				
 				@Override
-				public void draw(Canvas canvas) { // TODO fix the test
-					TextRender.drawText(canvas, "学会了魔法:", 0, 0);
-					TextRender.drawText(canvas, "actorId:" + get2ByteInt(code, start)
-							+ "t" + get2ByteInt(code, start + 2)
-							+ "i" + get2ByteInt(code, start + 4), 0, 16);
+				public void draw(Canvas canvas) {
+					mScreenMainGame.drawScene(canvas);
+					String msg = mMagicName != null 
+						? "学会魔法:" + mMagicName 
+						: "学会魔法!";
+					Util.showMessage(canvas, msg.getBytes());
 				}
 			};
 		}
