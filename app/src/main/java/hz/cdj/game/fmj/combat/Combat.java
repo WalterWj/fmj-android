@@ -487,7 +487,10 @@ public class Combat extends BaseScreen implements CombatUI.CallBack {
 //								p.setMP(p.getMaxMP()); CombatSuccess 中设置
 								p.setAttack(p.getAttack() + c.getAttack(cl + 1) - c.getAttack(cl));
 								p.setDefend(p.getDefend() + c.getDefend(cl + 1) - c.getDefend(cl));
-								p.setMagicLearnNum(c.getLearnMagicNum(cl + 1));
+								int newLearnNum = c.getLearnMagicNum(cl + 1);
+								if (newLearnNum > p.getMagicLearnNum()) {
+									p.setMagicLearnNum(newLearnNum);
+								}
 								p.setSpeed(p.getSpeed() + c.getSpeed(cl + 1) - c.getSpeed(cl));
 								p.setLingli(p.getLingli() + c.getLingli(cl + 1) - c.getLingli(cl));
 								p.setLuck(p.getLuck() + c.getLuck(cl + 1) - c.getLuck(cl));
