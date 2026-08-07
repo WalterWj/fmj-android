@@ -10,6 +10,7 @@ import hz.cdj.game.fmj.combat.Combat;
 import hz.cdj.game.fmj.gamemenu.ScreenGameMainMenu;
 import hz.cdj.game.fmj.graphics.Util;
 import hz.cdj.game.fmj.lib.DatLib;
+import hz.cdj.game.fmj.lib.ResGut;
 import hz.cdj.game.fmj.lib.ResMap;
 import hz.cdj.game.fmj.script.ScriptExecutor;
 import hz.cdj.game.fmj.script.ScriptProcess;
@@ -77,6 +78,12 @@ public class ScreenMainGame extends BaseScreen {
 			}
 			mScriptSys.loadScript(SaveLoadGame.ScriptType, SaveLoadGame.ScriptIndex);
 			mScriptExecutor = mScriptSys.getScriptExecutor();
+			// 清理存档中已击杀/已完成事件的幽灵 NPC
+			for (int i = 1; i < mNPCObj.length; i++) {
+				if (mNPCObj[i] != null && isNpcEventCompleted(i)) {
+					mNPCObj[i] = null;
+				}
+			}
 			ScriptExecutor.goonExecute = true;
 			mRunScript = false;
 		}
@@ -281,6 +288,11 @@ public class ScreenMainGame extends BaseScreen {
 		// NPC事件
 		int npcId = getNpcIdFromPosInMap(x, y);
 		if (npcId != 0) {
+			// 如果 NPC 事件已完成（幽灵 NPC），跳过触发并清理
+			if (isNpcEventCompleted(npcId)) {
+				deleteNpc(npcId);
+				return;
+			}
 			mRunScript = mScriptExecutor.triggerEvent(npcId);
 			return;
 		} else if (triggerMapEvent(x, y)) {// 地图切换
@@ -310,6 +322,31 @@ public class ScreenMainGame extends BaseScreen {
 	}
 	
 	/**
+	 * 检查 NPC 事件是否已完成（通过读取事件处理器的第一条 cmd_if 指令）。
+	 * 用于处理离开地图后 NPC 幽灵重现的问题：事件标志已置位但 NPC 仍残留。
+	 */
+	private boolean isNpcEventCompleted(int npcId) {
+		ResGut script = mScriptSys.getScript();
+		if (script == null) return false;
+		int[] events = script.getSceneEvent();
+		if (npcId < 1 || npcId > events.length) return false;
+		int addr = events[npcId - 1];
+		if (addr == 0) return false;
+		int headerCnt = events.length * 2 + 3;
+		int offset = addr - headerCnt;
+		byte[] data = script.getScriptData();
+		if (offset < 0 || offset + 2 >= data.length) return false;
+		if (data[offset] == 11) { // cmd_if
+			int flagNum = ((data[offset + 2] & 0xFF) << 8) | (data[offset + 1] & 0xFF);
+			if (flagNum > 0 && flagNum < ScriptResources.globalEvents.length
+					&& ScriptResources.globalEvents[flagNum]) {
+				return true; // 事件已完成
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * 地图的(x,y)处，是否可行走，是否有NPC
 	 * @param x
 	 * @param y
@@ -317,6 +354,11 @@ public class ScreenMainGame extends BaseScreen {
 	 */
 	public boolean canPlayerWalk(int x, int y) {
 		if (mMap == null) return false;
+		// 如果该位置有 NPC 但其事件已完成，允许穿行
+		int npcId = getNpcIdFromPosInMap(x, y);
+		if (npcId != 0 && isNpcEventCompleted(npcId)) {
+			return mMap.canPlayerWalk(x, y);
+		}
 		return mMap.canPlayerWalk(x, y) && getNpcFromPosInMap(x, y) == null;
 	}
 	

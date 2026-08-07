@@ -35,6 +35,8 @@ public class ScriptProcess {
 
 	private ResGut mScript;
 	
+	public ResGut getScript() { return mScript; }
+	
 	private Command[] mCmds;
 	
 	private ScreenMainGame mScreenMainGame;
