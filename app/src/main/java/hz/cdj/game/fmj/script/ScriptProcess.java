@@ -1170,7 +1170,35 @@ public class ScriptProcess {
 				
 				@Override
 				public boolean process() {
-					mScreenMainGame.createNpc(get2ByteInt(code, start),
+					int npcId = get2ByteInt(code, start);
+					
+					// 检查该NPC事件是否已被标记为完成（如拦路小妖已击杀）
+					// 防止离开地图再回来时NPC重复创建但无法触发战斗导致卡关
+					if (mScript != null) {
+						int[] events = mScript.getSceneEvent();
+						if (npcId >= 1 && npcId <= events.length) {
+							int addr = events[npcId - 1];
+							if (addr != 0) {
+								int headerCnt = events.length * 2 + 3;
+								int offset = addr - headerCnt;
+								byte[] scriptData = mScript.getScriptData();
+								if (offset >= 0 && offset + 2 < scriptData.length) {
+									// 检查事件处理器的第一条指令是否为 cmd_if (opcode 11)
+									if (scriptData[offset] == 11) {
+										// cmd_if 格式: opcode(1) + flagNum(2字节小端) + jumpAddr(2字节)
+										int flagNum = ((scriptData[offset + 2] & 0xFF) << 8)
+												| (scriptData[offset + 1] & 0xFF);
+										if (flagNum > 0 && flagNum < ScriptResources.globalEvents.length
+												&& ScriptResources.globalEvents[flagNum]) {
+											return false; // 事件已完成，跳过创建此NPC
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					mScreenMainGame.createNpc(npcId,
 							get2ByteInt(code, start + 2), 
 							get2ByteInt(code, start + 4),
 							get2ByteInt(code, start + 6));
