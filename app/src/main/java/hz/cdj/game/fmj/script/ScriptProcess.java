@@ -1441,8 +1441,10 @@ public class ScriptProcess {
 				
 				@Override
 				public boolean process() {
-					mScreenMainGame.getNPC(get2ByteInt(code, start))
-					.setCharacterState(get2ByteInt(code, start + 2));
+					NPC npc = mScreenMainGame.getNPC(get2ByteInt(code, start));
+					if (npc != null) {
+						npc.setCharacterState(get2ByteInt(code, start + 2));
+					}
 					return false;
 				}
 			};
@@ -1677,10 +1679,14 @@ public class ScriptProcess {
 					} else {
 						// TODO npc's step
 						NPC npc = mScreenMainGame.getNPC(id);
-						npc.setDirection(d);
-						npc.setStep(step);
-						if (mScreenMainGame.isNpcVisible(npc)) {
-							interval = 300;
+						if (npc != null) {
+							npc.setDirection(d);
+							npc.setStep(step);
+							if (mScreenMainGame.isNpcVisible(npc)) {
+								interval = 300;
+							} else {
+								interval = 0;
+							}
 						} else {
 							interval = 0;
 						}
